@@ -1,0 +1,45 @@
+# Середовище розробки: 1 репліка, мінімум ресурсів, образи 1.0.0, Ingress вимкнено
+# (доступ через kubectl port-forward). Значення збігаються з values.yaml, але вказані явно,
+# щоб різницю з values-prod.yaml було видно безпосередньо у файлах.
+config:
+  APP_ENV: "dev"
+  LOGGING_LEVEL_ROOT: "INFO"
+  SPRING_JPA_SHOW_SQL: "true"
+
+image:
+  tag: "1.0.0"
+
+services:
+  user-service:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 50m
+        memory: 192Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+  hotel-management:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 50m
+        memory: 192Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+  booking-service:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 50m
+        memory: 192Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+ui:
+  replicas: 1
+
+ingress:
+  enabled: false

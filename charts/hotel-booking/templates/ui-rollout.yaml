@@ -1,0 +1,20 @@
+{{- if .Values.ui.rollout.enabled }}
+{{- $ui := include "hotel-booking.componentName" (dict "root" . "component" "ui") }}
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: {{ $ui }}
+  labels:
+    {{- include "hotel-booking.labels" (dict "root" . "component" "ui") | nindent 4 }}
+spec:
+  replicas: {{ .Values.ui.replicas }}
+  revisionHistoryLimit: 3
+  progressDeadlineSeconds: {{ .Values.ui.progressDeadlineSeconds }}
+  selector:
+    matchLabels:
+      {{- include "hotel-booking.selectorLabels" (dict "root" . "component" "ui") | nindent 6 }}
+  template:
+    {{- include "hotel-booking.ui.podTemplate" . | nindent 4 }}
+  strategy:
+    {{- tpl (toYaml .Values.ui.rollout.strategy) . | nindent 4 }}
+{{- end }}

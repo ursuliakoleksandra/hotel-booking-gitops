@@ -1,0 +1,15 @@
+# Необов'язково: образи з GHCR замість локальних образів minikube.
+# Додається в valueFiles після values-minikube.yaml. ursuliakoleksandra замінює scripts/set-github-user.sh.
+services:
+  user-service:
+    image:
+      repository: ghcr.io/ursuliakoleksandra/hotel-booking-user-service
+  hotel-management:
+    image:
+      repository: ghcr.io/ursuliakoleksandra/hotel-booking-hotel-management
+  booking-service:
+    image:
+      repository: ghcr.io/ursuliakoleksandra/hotel-booking-booking-service
+ui:
+  image:
+    repository: ghcr.io/ursuliakoleksandra/hotel-booking-ui

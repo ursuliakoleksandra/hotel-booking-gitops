@@ -1,0 +1,43 @@
+# Значення для кластера minikube під керуванням Argo CD.
+# Secret створюється вручну (див. README), у Git паролів немає.
+existingSecret: hotel-booking-secret
+
+# Argo CD запускає Helm-хуки pre-upgrade як PreSync ще до створення об'єктів,
+# а helm test не потрібен, тож вимикаємо обидва.
+hooks:
+  enabled: false
+tests:
+  enabled: false
+
+image:
+  tag: "1.0.0"                # теги всіх Spring-сервісів
+  pullPolicy: IfNotPresent    # образи завантажені в minikube
+
+config:
+  APP_ENV: "minikube"
+
+ui:
+  replicas: 1
+  image:
+    tag: "1.0.0"              # початкова версія для демонстрації GitOps
+  progressDeadlineSeconds: 90
+  rollout:
+    enabled: false
+    strategy:
+      canary:
+        steps:
+          - setWeight: 20
+          - pause: {}            # чекати ручного promote
+          - setWeight: 60
+          - pause: {duration: 30s}
+          - setWeight: 80
+          - pause: {duration: 30s}
+      # Варіант blue-green (замість canary; активний лише один з двох блоків):
+      # blueGreen:
+      #   activeService: '{{ include "hotel-booking.componentName" (dict "root" . "component" "ui") }}'
+      #   previewService: '{{ include "hotel-booking.componentName" (dict "root" . "component" "ui") }}-preview'
+      #   autoPromotionEnabled: false
+      #   scaleDownDelaySeconds: 30
+
+ingress:
+  enabled: false
