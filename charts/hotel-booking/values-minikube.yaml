@@ -19,7 +19,7 @@ config:
 ui:
   replicas: 1
   image:
-    tag: "1.0.0"              # початкова версія для демонстрації GitOps
+    tag: "1.1.0"              # початкова версія для демонстрації GitOps
   progressDeadlineSeconds: 90
   rollout:
     enabled: false
