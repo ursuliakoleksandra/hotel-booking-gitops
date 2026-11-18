@@ -17,12 +17,12 @@ config:
   APP_ENV: "minikube"
 
 ui:
-  replicas: 1
+  replicas: 5
   image:
     tag: "1.1.0"              # початкова версія для демонстрації GitOps
   progressDeadlineSeconds: 90
   rollout:
-    enabled: false
+    enabled: true
     strategy:
       canary:
         steps:
