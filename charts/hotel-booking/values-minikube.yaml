@@ -19,9 +19,9 @@ config:
 # Метрики, дашборд і алерт потребують CRD kube-prometheus-stack (ServiceMonitor, PrometheusRule).
 # Спершу false; після того як kps став Healthy, окремим комітом міняємо обидва на true.
 metrics:
-  enabled: false
+  enabled: true
   alerts:
-    enabled: false
+    enabled: true
 
 # Автоматичний відкат за метриками (ЛР-7): аналізуємо частку не-5xx відповідей hotel-management
 analysis:
