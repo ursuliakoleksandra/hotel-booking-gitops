@@ -37,7 +37,7 @@ services:
       tag: "2.1.0"            # саме цей тег міняємо для релізу
     env:
       - name: FAIL_RATE       # частка запитів, що отримують 500 (поганий реліз: "0.5")
-        value: "0.5"
+        value: "0"
     rollout:
       enabled: true
       strategy:
