@@ -93,6 +93,13 @@ helm install hotel-booking-prod chart/hotel-booking -n hotel-helm-prod --create-
 | `hooks.enabled` | `true` | Хук pre-upgrade (Job з перевіркою PostgreSQL); для Argo CD вимикається |
 | `tests.enabled` | `true` | Pod для `helm test`; для Argo CD вимикається |
 | `ui.progressDeadlineSeconds` | `600` | Через скільки секунд без прогресу rollout UI вважається невдалим |
+| `services.<сервіс>.env` | `[]` | Змінні оточення контейнера у вигляді списку `name/value` (наприклад `FAIL_RATE`) |
+| `services.<сервіс>.rollout.enabled` / `.strategy` | `false` / `{}` | Замість Deployment створити Argo Rollout із вказаною стратегією (рядки можуть містити шаблони Helm) |
+| `metrics.enabled` | `false` | ServiceMonitor, дашборд Grafana (ConfigMap із міткою `grafana_dashboard`); потрібні CRD kube-prometheus-stack |
+| `metrics.path` | `/actuator/prometheus` | Шлях із метриками |
+| `metrics.alerts.enabled` | `false` | PrometheusRule: частка 5xx більше 5% протягом 1 хвилини |
+| `analysis.enabled` | `false` | AnalysisTemplate `<реліз>-success-rate` для Argo Rollouts |
+| `analysis.prometheusAddress` / `.threshold` / `.selector` | `""` / `0.95` / `""` | Адреса Prometheus, мінімальна частка успішних запитів, вибір сервісу в PromQL |
 | `ui.rollout.enabled` | `false` | Створити Argo Rollout для UI замість Deployment (потрібні CRD Argo Rollouts) |
 | `ui.rollout.strategy` | `{}` | Стратегія Rollout (`canary` або `blueGreen`), копіюється в `spec.strategy` |
 | `services.<сервіс>.image.repository` | `hotel-booking-system/<сервіс>` | Репозиторій образу |

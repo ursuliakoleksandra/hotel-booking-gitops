@@ -1,0 +1,23 @@
+{{- if .Values.analysis.enabled }}
+{{- $sel := tpl .Values.analysis.selector . }}
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: {{ include "hotel-booking.fullname" . }}-success-rate
+  labels:
+    {{- include "hotel-booking.labels" (dict "root" . "component" "analysis") | nindent 4 }}
+spec:
+  metrics:
+    - name: success-rate
+      interval: 30s
+      count: 4
+      failureLimit: 1
+      successCondition: result[0] >= {{ .Values.analysis.threshold }}
+      provider:
+        prometheus:
+          address: {{ .Values.analysis.prometheusAddress }}
+          query: |
+            sum(rate(http_server_requests_seconds_count{ {{- $sel -}},uri!~"/actuator.*",status!~"5.."}[1m]))
+            /
+            sum(rate(http_server_requests_seconds_count{ {{- $sel -}},uri!~"/actuator.*"}[1m]))
+{{- end }}

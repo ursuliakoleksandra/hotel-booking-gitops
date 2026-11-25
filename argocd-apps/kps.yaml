@@ -1,0 +1,56 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kps
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"   # раніше за застосунки
+spec:
+  project: default
+  source:
+    repoURL: https://prometheus-community.github.io/helm-charts
+    chart: kube-prometheus-stack
+    targetRevision: 91.9.0               # актуальну версію: bash scripts/pin-chart-versions.sh
+    helm:
+      valuesObject:
+        fullnameOverride: kps            # короткі імена сервісів: kps-prometheus, kps-grafana
+        # компоненти control plane minikube недоступні для скрейпу, тож вимикаємо, щоб не було шуму
+        kubeEtcd: {enabled: false}
+        kubeControllerManager: {enabled: false}
+        kubeScheduler: {enabled: false}
+        kubeProxy: {enabled: false}
+        # менше рухомих частин: без admission webhook і його TLS-джобів
+        prometheusOperator:
+          admissionWebhooks: {enabled: false}
+          tls: {enabled: false}
+        prometheus:
+          prometheusSpec:
+            retention: 2d
+            # підхоплювати ServiceMonitor і PrometheusRule без мітки release
+            serviceMonitorSelectorNilUsesHelmValues: false
+            podMonitorSelectorNilUsesHelmValues: false
+            ruleSelectorNilUsesHelmValues: false
+        grafana:
+          admin:
+            existingSecret: grafana-admin   # Secret створюється вручну, пароль не в Git
+            userKey: admin-user
+            passwordKey: admin-password
+          sidecar:
+            dashboards:
+              searchNamespace: ALL          # шукати ConfigMap-и з дашбордами в усіх namespace
+          additionalDataSources:
+            - name: Loki
+              uid: loki
+              type: loki
+              access: proxy
+              url: http://loki-gateway.monitoring
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true             # CRD цього чарту завеликі для звичайного apply

@@ -6,6 +6,9 @@ metadata:
   name: {{ include "hotel-booking.componentName" (dict "root" $ "component" $name) }}
   labels:
     {{- include "hotel-booking.labels" (dict "root" $ "component" $name) | nindent 4 }}
+    {{- if $.Values.metrics.enabled }}
+    hotel-booking.io/metrics: "true"
+    {{- end }}
 spec:
   type: {{ $svc.service.type }}
   selector:

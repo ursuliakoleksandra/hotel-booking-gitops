@@ -53,7 +53,11 @@ services:
       limits:
         cpu: 500m
         memory: 512Mi
-    config: {}           # додаткові змінні оточення цього сервісу
+    config: {}           # додаткові змінні оточення цього сервісу (ConfigMap)
+    env: []              # змінні оточення контейнера у вигляді списку name/value (наприклад FAIL_RATE)
+    rollout:
+      enabled: false     # true: замість Deployment створюється Argo Rollout зі стратегією strategy
+      strategy: {}
 
   hotel-management:
     image:
@@ -74,6 +78,10 @@ services:
         cpu: 500m
         memory: 512Mi
     config: {}
+    env: []
+    rollout:
+      enabled: false
+      strategy: {}
 
   booking-service:
     image:
@@ -96,6 +104,10 @@ services:
     config:
       HOTEL_SERVICE_URL: 'http://{{ include "hotel-booking.componentName" (dict "root" . "component" "hotel-management") }}:{{ (index .Values.services "hotel-management").service.port }}/api/v1/hotels'
       SPRING_KAFKA_BOOTSTRAP_SERVERS: '{{ include "hotel-booking.componentName" (dict "root" . "component" "kafka") }}:{{ .Values.kafka.port }}'
+    env: []
+    rollout:
+      enabled: false
+      strategy: {}
 
 # Хук pre-upgrade і тест релізу (helm test). Для Argo CD вимкніть обидва:
 # Argo CD запускає pre-upgrade як PreSync ще до створення об'єктів, і перевірка PostgreSQL падає.
@@ -167,6 +179,22 @@ kafka:
     limits:
       cpu: 1000m
       memory: 1Gi
+
+# Метрики (ServiceMonitor для Prometheus Operator), дашборд Grafana і алерт.
+# Потрібні CRD kube-prometheus-stack, тому за замовчуванням вимкнено.
+metrics:
+  enabled: false
+  path: /actuator/prometheus
+  alerts:
+    enabled: false      # PrometheusRule: частка 5xx > 5% протягом 1 хвилини
+
+# Автоматичний аналіз релізу за метриками (AnalysisTemplate для Argo Rollouts).
+# selector: частина запиту PromQL, що вибирає сервіс (може містити шаблони Helm).
+analysis:
+  enabled: false
+  prometheusAddress: ""
+  threshold: 0.95       # мінімальна частка успішних (не 5xx) запитів
+  selector: ""
 
 # Ingress (необов'язковий)
 ingress:

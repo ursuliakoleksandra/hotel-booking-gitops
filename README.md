@@ -8,12 +8,16 @@ hotel-booking-gitops/
 ├── bootstrap/root.yaml            кореневий Application, застосовується вручну один раз
 ├── argocd-apps/hotel-booking.yaml Application застосунку (ним керує root)
 ├── argocd-apps/argo-rollouts.yaml Application контролера Argo Rollouts (ЛР-6)
+├── argocd-apps/kps.yaml           kube-prometheus-stack: Prometheus, Alertmanager, Grafana (ЛР-7)
+├── argocd-apps/loki.yaml          Loki, один процес (ЛР-7)
+├── argocd-apps/alloy.yaml         Grafana Alloy: збір логів подів у Loki (ЛР-7)
 ├── charts/hotel-booking/          Helm-чарт з лабораторної №4
 │   ├── values-minikube.yaml       значення для кластера minikube (тег образу, existingSecret, вимкнені хуки)
 │   └── values-ghcr.yaml           необов'язково: образи з GHCR замість локальних
 └── scripts/
     ├── set-github-user.sh         підставляє ваш логін GitHub у файли
-    └── push-to-ghcr.sh            публікує образи 1.0.0 і 1.1.0 у GHCR
+    ├── push-to-ghcr.sh            публікує образи 1.0.0 і 1.1.0 у GHCR
+    └── pin-chart-versions.sh      підставляє актуальні версії чартів моніторингу (helm search repo)
 ```
 
 ## Що змінилось у чарті порівняно з лабораторною №4
@@ -41,3 +45,15 @@ hotel-booking-gitops/
 - `values-minikube.yaml`: `ui.replicas: 5`, `ui.rollout.enabled: true`, canary-кроки 20%, пауза, 60%, 30 с, 80%, 30 с.
   Блок blue-green лежить там же закоментованим.
 - `argocd-apps/hotel-booking.yaml`: `retry` на випадок, якщо застосунок синхронізується раніше за CRD.
+
+## Лабораторна №7: Observability і відкат за метриками
+
+- `argocd-apps/kps.yaml`, `loki.yaml`, `alloy.yaml`: стек моніторингу з Git (namespace `monitoring`). Пароль Grafana в Git не зберігається:
+  Secret `grafana-admin` створюється вручну.
+- Spring-сервіси (образи 2.x) віддають метрики на `/actuator/prometheus` (`http_server_requests_seconds_*` з гістограмою),
+  пишуть JSON-логи в stdout (час, рівень, повідомлення, метод, маршрут, статус, тривалість, версія) і підтримують змінну
+  `FAIL_RATE` (частка запитів, що отримують 500).
+- Чарт (версія 0.3.0): `servicemonitor.yaml`, `dashboard.yaml` + `dashboards/hotel-booking.json`, `prometheusrule.yaml`,
+  `analysistemplate.yaml`, `app-rollout.yaml` (Rollout для будь-якого Spring-сервісу). Сервіс `hotel-management` розгортається
+  як canary з автоматичним аналізом: AnalysisRun питає Prometheus про частку не-5xx відповідей (поріг 95%).
+- `values-minikube.yaml`: `metrics.enabled` спершу `false`, вмикається окремим комітом після того, як kps став Healthy.
