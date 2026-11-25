@@ -10,7 +10,7 @@ tests:
   enabled: false
 
 image:
-  tag: "2.1.0"                # Spring-сервіси з метриками та JSON-логами
+  tag: "2.0.0"                # Spring-сервіси з метриками та JSON-логами
   pullPolicy: IfNotPresent    # образи завантажені в minikube
 
 config:
